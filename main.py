@@ -44,7 +44,7 @@ def noise(t, a):
 def wave(function, frequency, sample_rate, seconds):
     period = 1.0 / frequency
     inc = 1.0 / sample_rate
-    return [function(i*inc, period) for i in range(sample_rate * seconds)]
+    return [function(i*inc, period) for i in range(int(sample_rate * seconds))]
 
 def add(wave1, wave2):
     outdata = []
@@ -55,21 +55,32 @@ def add(wave1, wave2):
 def append(wave1, wave2):
     return wave1 + wave2
 
-def volume(wave, vol):
+def scale(wave, vol):
     outdata = []
     for d in wave:
         outdata.append(vol*d)
     return outdata
 
-d1 = wave(tri, 100, SAMPLE_RATE, 2)
-d2 = wave(tri, 93, SAMPLE_RATE, 2)
+def clip(wave, amp):
+    outdata = []
+    for d in wave:
+        if d < -amp:
+            outdata.append(-amp)
+        elif d > amp:
+            outdata.append(amp)
+        else:
+            outdata.append(d)
+    return outdata
 
-d3 = wave(tri, 80, SAMPLE_RATE, 2)
-d4 = wave(tri, 70, SAMPLE_RATE, 2)
+d1 = wave(tri, 100, SAMPLE_RATE, 0.5)
+d2 = wave(tri, 93, SAMPLE_RATE, 0.5)
+
+d3 = wave(tri, 80, SAMPLE_RATE, 0.5)
+d4 = wave(tri, 70, SAMPLE_RATE, 0.5)
 
 data = d1 + d2 + d3 + d4
 data = normalize(data)
-data = volume(data, 0.25)
+data = scale(data, 0.25)
 raw_data = floats_to_buf(data)
 
 dev = ao.AudioDevice(ao.driver_id("pulse"), bits=16, rate=SAMPLE_RATE, channels=1)
