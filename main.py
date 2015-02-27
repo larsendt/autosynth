@@ -41,6 +41,15 @@ def null(t, a):
 def noise(t, a):
     return random.uniform(-1, 1)
 
+def brown_noise(sample_rate, seconds):
+    a = 0
+    step = 0.1
+    noise = []
+    for i in range(int(sample_rate * seconds)):
+        a += random.uniform(-step, step)
+        noise.append(a)
+    return normalize(noise)
+
 def wave(function, frequency, sample_rate, seconds):
     period = 1.0 / frequency
     inc = 1.0 / sample_rate
@@ -51,6 +60,25 @@ def add(wave1, wave2):
     for a,b in zip(wave1, wave2):
         outdata.append(a+b)
     return outdata
+
+def smooth(wave, sample_window):
+    out = []
+    window = [None] * sample_window
+    
+    def avg(win):
+        s = 0
+        c = 0
+        for w in win:
+            if w != None:
+                s += w
+                c += 1
+        return s / float(c)
+
+    for i in range(len(wave)):
+        idx = i % sample_window
+        window[idx] = wave[i]
+        out.append(avg(window))
+    return out
 
 def append(wave1, wave2):
     return wave1 + wave2
@@ -72,15 +100,28 @@ def clip(wave, amp):
             outdata.append(d)
     return outdata
 
-d1 = wave(tri, 100, SAMPLE_RATE, 0.5)
-d2 = wave(tri, 93, SAMPLE_RATE, 0.5)
+def cdak_noise(minfreq, maxfreq, seconds, nsamples):
+    data = []
+    s = 1 / float(nsamples)
+    n = seconds / s
+    for i in range(int(n)):
+        freq = random.randint(minfreq, maxfreq)
+        d = wave(tri, freq, SAMPLE_RATE, s)
+        data += d
+    return data
 
-d3 = wave(tri, 80, SAMPLE_RATE, 0.5)
-d4 = wave(tri, 70, SAMPLE_RATE, 0.5)
 
-data = d1 + d2 + d3 + d4
+data = []
+for i in range(10):
+    s = (i+1) * 5
+    print s
+    data.extend(smooth(brown_noise(SAMPLE_RATE, 1), s))
+
+pyplot.plot(data[:1000])
+pyplot.show()
+
 data = normalize(data)
-data = scale(data, 0.25)
+data = scale(data, 1.0)
 raw_data = floats_to_buf(data)
 
 dev = ao.AudioDevice(ao.driver_id("pulse"), bits=16, rate=SAMPLE_RATE, channels=1)
