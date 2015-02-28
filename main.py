@@ -105,9 +105,25 @@ def clip(wave, amp):
             outdata.append(d)
     return outdata
 
-def cdak_noise(minfreq, maxfreq, seconds, nsamples):
+def extend_fade(wave1, wave2, nsamples):
+    beginning = wave1[:-(nsamples/2)]
+    end = wave2[(nsamples/2):]
+
+    first = wave1[-nsamples:]
+    second = wave2[:nsamples]
+    middle = []
+
+    for i in range(nsamples):
+        mix2 = i / float(nsamples)
+        mix1 = 1.0 - mix2
+        f = first[i]
+        s = second[i]
+        middle.append((f * mix1) + (s * mix2))
+    return beginning + middle + end
+
+def cdak_noise(minfreq, maxfreq, seconds, noise_samples_per_sec):
     data = []
-    s = 1 / float(nsamples)
+    s = 1 / float(noise_samples_per_sec)
     n = seconds / s
     for i in range(int(n)):
         freq = random.randint(minfreq, maxfreq)
