@@ -43,10 +43,15 @@ def noise(t, a):
 
 def brown_noise(sample_rate, seconds):
     a = 0
-    step = 0.1
+    step = 0.01
     noise = []
     for i in range(int(sample_rate * seconds)):
-        a += random.uniform(-step, step)
+        p = (a + 1) / 2.0
+        if random.uniform(0, 1) > p:
+            s = step
+        else:
+            s = -step
+        a += s
         noise.append(a)
     return normalize(noise)
 
