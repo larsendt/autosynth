@@ -131,19 +131,31 @@ def cdak_noise(minfreq, maxfreq, seconds, noise_samples_per_sec):
         data += d
     return data
 
+def random_walk():
+    s = 0.1
+    freq = 880
+    data = wave(tri, freq, SAMPLE_RATE, s)
+    for i in range(100):
+        d = wave(tri, freq, SAMPLE_RATE, s)
+        data = extend_fade(data, d, 2000)
+        freq += random.randint(-20, 20)
+    return data
 
-data = []
-for i in range(10):
-    s = (i+1) * 5
-    print s
-    data.extend(smooth(brown_noise(SAMPLE_RATE, 1), s))
 
-pyplot.plot(data[:1000])
-pyplot.show()
+#d1 = cdak_noise(100, 150, 5, 5)
+#d3 = scale(smooth(wave(noise, 440, SAMPLE_RATE, 5), 100), 16.0)
+#data = add(add(d1, d2), d3)
+
+d1 = scale(cdak_noise(1600, 2000, 5, 100), 0.1)
+d2 = smooth(brown_noise(SAMPLE_RATE, 5), 8)
+data = add(d1, d2)
 
 data = normalize(data)
-data = scale(data, 1.0)
+data = scale(data, 0.1)
 raw_data = floats_to_buf(data)
 
 dev = ao.AudioDevice(ao.driver_id("pulse"), bits=16, rate=SAMPLE_RATE, channels=1)
 dev.play(raw_data)
+
+
+
